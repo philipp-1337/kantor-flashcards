@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MenuDrawer from './components/MenuDrawer';
 import { ChevronLeft, ChevronRight, RotateCcw, Plus, Edit2, Trash2, Brain, LogIn, LogOut, User } from 'lucide-react';
 
 // ============================================================================
@@ -31,6 +32,9 @@ interface StudySession {
 */
 
 const KantorFlashcards = () => {
+  // Drawer State für Mobile
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   // ============================================================================
   // AUTH STATE (später aus useAuth Hook)
   // ============================================================================
@@ -700,6 +704,7 @@ const KantorFlashcards = () => {
   // ============================================================================
   // MAIN APP UI
   // ============================================================================
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
@@ -713,8 +718,9 @@ const KantorFlashcards = () => {
                 <p className="text-sm text-gray-600">Hallo, {user.displayName || user.email}!</p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-4">
+
+            {/* Desktop Menü */}
+            <div className="hidden md:flex items-center space-x-4">
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => switchMode('browse')}
@@ -742,7 +748,7 @@ const KantorFlashcards = () => {
                   )}
                 </button>
               </div>
-              
+
               <button
                 onClick={() => setShowAddForm(true)}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
@@ -759,8 +765,19 @@ const KantorFlashcards = () => {
                 <LogOut className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Mobile Hamburger */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="text-gray-600 hover:text-gray-800 p-2"
+                aria-label="Menü öffnen"
+              >
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+            </div>
           </div>
-          
+
           <div className="mt-4 flex justify-between items-center">
             <div className="text-sm text-gray-600">
               {studyMode === 'browse' 
@@ -775,6 +792,51 @@ const KantorFlashcards = () => {
             )}
           </div>
         </div>
+
+        {/* Mobile Drawer */}
+        <MenuDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+          <div className="flex flex-col space-y-4">
+            <button
+              onClick={() => { switchMode('browse'); setDrawerOpen(false); }}
+              className={`w-full px-4 py-2 rounded-md text-sm font-medium transition-colors text-left ${
+                studyMode === 'browse' 
+                  ? 'bg-indigo-50 text-indigo-600 font-bold' 
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Durchsuchen
+            </button>
+            <button
+              onClick={() => { switchMode('study'); setDrawerOpen(false); }}
+              className={`w-full px-4 py-2 rounded-md text-sm font-medium transition-colors text-left relative ${
+                studyMode === 'study' 
+                  ? 'bg-indigo-50 text-indigo-600 font-bold' 
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Lernen
+              {dueCardsCount > 0 && (
+                <span className="absolute top-2 right-4 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {dueCardsCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => { setShowAddForm(true); setDrawerOpen(false); }}
+              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Neue Karte
+            </button>
+            <button
+              onClick={() => { signOut(); setDrawerOpen(false); }}
+              className="w-full text-gray-600 hover:text-gray-800 transition-colors p-2 text-left"
+              title="Abmelden"
+            >
+              <LogOut className="w-5 h-5 inline mr-2" /> Abmelden
+            </button>
+          </div>
+        </MenuDrawer>
 
         {/* Loading State */}
         {cardsLoading && (
@@ -820,7 +882,7 @@ const KantorFlashcards = () => {
                     disabled={availableCards.length <= 1}
                   >
                     <ChevronLeft className="w-5 h-5 mr-1" />
-                    Vorherige
+                    <span className="hidden sm:inline">Vorherige</span>
                   </button>
 
                   <button
@@ -828,7 +890,7 @@ const KantorFlashcards = () => {
                     className="flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <RotateCcw className="w-5 h-5 mr-2" />
-                    Umdrehen
+                    <span className="hidden sm:inline">Umdrehen</span>
                   </button>
 
                   <button
@@ -836,7 +898,7 @@ const KantorFlashcards = () => {
                     className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                     disabled={availableCards.length <= 1}
                   >
-                    Nächste
+                    <span className="hidden sm:inline">Nächste</span>
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </button>
                 </div>
